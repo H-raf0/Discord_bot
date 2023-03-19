@@ -46,33 +46,73 @@ def readMsgs():
 
     liMsift.click()
 
+    downloadHTML(driver)
+
+    with open("page.txt", 'r', encoding="utf8") as file:
+        f = False
+        collect = False
+        i=0
+        target = 'id="message-content-'
+        msg = ""
+        lastMsg = ""
+        text = file.read()
+        for char in text:
+            if not f:
+                if char == target[i]:  # replace 'x' with the character you want to search for
+                    i += 1
+                    if i == len(target) - 1:
+                        f = True
+                else:
+                    i = 0
+            else:
+                if collect:
+                    if char != '<':
+                        msg += char
+                    else:
+                        lastMsg = msg
+                        msg = ""
+                        collect = False
+                        f = False
+                if char == '>':
+                    collect = True
+    return lastMsg
+
+
+
+
+
+    """
     msgs = WebDriverWait(driver, 2).until(
         EC.visibility_of_all_elements_located((By.XPATH, "//*[starts-with(@id, 'message-content-')]"))
     )
     msgLst = []
     for e in msgs:
         msgLst.append(e.text)
-        print(e)
-
-    #users = driver.find_elements(by=By.XPATH, value="//*[starts-with(@id, 'chat-messages-')]/div/div[1]/h3/span/span")
-    #userName = users[-1].text
-
-
-    return msgLst
+    
+    return msgLst"""
 
 def doAction(action):
-    if action == "/help":
-        msg = "i can help with nothing MF"
-    elif action == "/dance":
-        msg = "i don t like dancing"
-    else:
-        msg = "i don't understand"
+    if action[0] == "/":
 
-    writingBar = driver.find_element(by=By.XPATH, value='//*[@id="app-mount"]/div[2]/div[1]/div[1]/div/div[2]/div/div/div/div/div[2]/div[2]/main/form/div/div[1]/div/div[3]/div/div[2]/div')
-    writingBar.send_keys(msg + Keys.ENTER)
+        if action == "/help":
+            msg = "i can help with nothing MF"
+        elif action == "/dance":
+            msg = "i don t like dancing"
+        else:
+            msg = "i don't understand"
+
+        writingBar = driver.find_element(by=By.XPATH, value='//*[@id="app-mount"]/div[2]/div[1]/div[1]/div/div[2]/div/div/div/div/div[2]/div[2]/main/form/div/div[1]/div/div[3]/div/div[2]/div')
+        writingBar.send_keys(msg + Keys.ENTER)
     # quit conversation
     driver.find_element(by=By.XPATH, value='//*[@id="app-mount"]/div[2]/div[1]/div[1]/div/div[2]/div/div/div/div/div/nav/div[2]/ul/li[1]/div/a/div/div[2]').click()
 
+def downloadHTML(driver):
+    # get the page source (i.e. HTML) of the web page
+    page_source = driver.page_source
+
+    # save the page source to a file
+    with open("page.txt", "w", encoding="utf-8") as f:
+        f.write(page_source)
 
 if __name__ == "__main__":
 
@@ -93,8 +133,9 @@ if __name__ == "__main__":
     while 1:
         while not checkMsg():
             sleep(1)
-        msglst = readMsgs()
-        doAction(msglst[-1])
+        msg = readMsgs()
+        print(msg)
+        doAction(msg)
 
 
     # driver.quit()
